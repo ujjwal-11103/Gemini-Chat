@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from 'react';
 const App = () => {
   const apiKey = import.meta.env.VITE_API_KEY;
   const apiEndpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`;
-  
 
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState([]);
@@ -15,7 +14,12 @@ const App = () => {
 
   const generateAPIResponse = async (event) => {
     event.preventDefault(); // Prevent default form submission
+    
+    // Add the user's message to the messages array immediately
+    setMessages((prevMessages) => [...prevMessages, { text: inputText, role: 'user' }]);
+    setInputText(""); // Clear the input field after submission
     setIsLoading(true); // Set loading to true before API call
+    setGuideVisible(false); // Hide guide after the first message
 
     try {
       const response = await fetch(apiEndpoint, {
@@ -33,17 +37,13 @@ const App = () => {
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received";
       console.log("Message:", text);
 
-      // Add user message and API response to the messages array
-      setMessages([...messages, { text: inputText, role: 'user' }, { text: text, role: 'gemini' }]);
-      setGuideVisible(false); // Hide guide after the first message
-      setIsLoading(false); // Set loading to false after API response
-
-
+      // Add the API response to the messages array
+      setMessages((prevMessages) => [...prevMessages, { text: text, role: 'gemini' }]);
     } catch (error) {
       console.log(error);
     }
 
-    setInputText(""); // Clear the input field after submission
+    setIsLoading(false); // Set loading to false after API response
   };
 
   // Scroll to the bottom of the chat container whenever messages change
@@ -67,7 +67,6 @@ const App = () => {
       <div className="flex flex-col justify-between bg-teal-700 h-screen pt-16">
         {/* Chat section */}
         <div className="flex-grow overflow-y-auto p-4 space-y-4 relative">
-          
           {/* Display initial guide */}
           {guideVisible && (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-600 p-4 rounded-lg shadow-md">
@@ -83,7 +82,7 @@ const App = () => {
               {message.text}
             </div>
           ))}
-          
+
           {/* Display loading spinner when waiting for API response */}
           {isLoading && (
             <div className="flex justify-center items-center">
