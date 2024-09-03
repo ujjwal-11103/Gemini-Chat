@@ -9,10 +9,13 @@ const App = () => {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState([]);
   const [guideVisible, setGuideVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // State for loading indicator
+
   const chatEndRef = useRef(null);
 
   const generateAPIResponse = async (event) => {
     event.preventDefault(); // Prevent default form submission
+    setIsLoading(true); // Set loading to true before API call
 
     try {
       const response = await fetch(apiEndpoint, {
@@ -33,6 +36,8 @@ const App = () => {
       // Add user message and API response to the messages array
       setMessages([...messages, { text: inputText, role: 'user' }, { text: text, role: 'gemini' }]);
       setGuideVisible(false); // Hide guide after the first message
+      setIsLoading(false); // Set loading to false after API response
+
 
     } catch (error) {
       console.log(error);
@@ -78,6 +83,14 @@ const App = () => {
               {message.text}
             </div>
           ))}
+          
+          {/* Display loading spinner when waiting for API response */}
+          {isLoading && (
+            <div className="flex justify-center items-center">
+              <div className="loader"></div>
+            </div>
+          )}
+
           {/* Reference for scrolling */}
           <div ref={chatEndRef} />
         </div>
